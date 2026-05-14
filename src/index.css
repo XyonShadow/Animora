@@ -1,8 +1,93 @@
+/* Injects Tailwind’s generated styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Fonts */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap");
+
+/* Central color system */
+:root {
+  --color-bg: #070b14;
+
+  --color-surface: #0d1220;
+  --color-surface-2: #151b2d;
+
+  --color-brand: #d32f2f;
+
+  --scrollbar-thumb: #151b2d;
+  --scrollbar-track: #070b14;
+}
+
+/* Global app styling */
 body {
-  background-color: #0A0F1C;
-  color: #E5E7EB;
+  background-color: var(--color-bg);
+  color: #f3f4f6;
+  font-family: "DM Sans", sans-serif;
+  overflow-x: hidden;
+}
+
+/* ------------------- SCROLLBAR STYLING ------------------- */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+/* Hover state */
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3a55;
+}
+
+/* Scrollbar support */
+* {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+/* Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ------------------- SKELETON LOADING STATE ------------------- */
+
+/* Used for loading placeholders */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1a2235 25%,
+    #222d42 50%,
+    #1a2235 75%
+  );
+
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Shimmer animation definition */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Line Clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

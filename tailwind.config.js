@@ -4,7 +4,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "#0A0F1C",          // page bg
+        bg: "var(--color-bg)",
+        surface: "var(--color-surface)",
+        surface2: "var(--color-surface-2)",
+        brand: "var(--color-brand)",
       }
     },
   },
