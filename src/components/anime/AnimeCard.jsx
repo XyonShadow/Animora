@@ -1,3 +1,4 @@
+import { Dot, Star } from "lucide-react";
 import { getImageUrl, formatScore } from "../../api/Jikan.js";
 
 export function AnimeCard({ anime }) {
@@ -26,11 +27,11 @@ export function AnimeCard({ anime }) {
             {/* Score and type metadata */}
             <div className="flex items-center gap-1 mt-1">
               <span className="text-brand text-xs font-bold">
-                {formatScore(item.score)} ★
+                {formatScore(item.score)} <Star className="inline-flex items-center justify-center fill-current w-4 h-4 -mt-1"/>
               </span>
 
               <span className="text-text-faint text-xs">
-                • {item.type}
+                <Dot className="inline-flex items-center justify-center text-current w-6 h-6 -mt-1"/> {item.type}
               </span>
             </div>
           </div>

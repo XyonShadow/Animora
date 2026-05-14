@@ -1,18 +1,55 @@
-# React + Vite
+# Animora -- Anime Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple React-based anime discovery app powered by the Jikan API.  
+Users can browse top anime, view details, and explore anime by different categories.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Fetch top-rated anime
+- Browse seasonal anime
+- Search for anime titles
+- View anime details (via MyAnimeList ID)
+- Genre-based filtering (in progress)
+- Responsive UI with loading and error states
+- Reusable components for scalability
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+---
 
-Note: This will impact Vite dev & build performances.
+## Tech Stack
 
-## Expanding the ESLint configuration
+- React (Vite)
+- JavaScript (ES6+)
+- Tailwind CSS
+- Lucide React Icons
+- Jikan API (MyAnimeList unofficial API)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## API Used
+
+- Jikan API  
+https://docs.api.jikan.moe/
+
+---
+
+## Project Structure
+src/
+api/ # API layer (Jikan wrapper)
+components/ # Reusable UI components
+pages/ # App pages (Home, etc.)
+
+---
+
+## Installation
+
+```bash
+# clone repo
+git clone <your-repo-url>
+
+# install dependencies
+npm install
+
+# run project
+npm run dev
