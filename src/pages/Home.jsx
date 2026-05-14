@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getTopAnime } from "../api/Jikan";
 import { LoadingGrid } from "../components/anime/LoadingGrid";
 import { ErrorMessage } from "../components/anime/Errormessage";
-import { AnimeCard } from "../components/anime/AnimeCard";
+import { AnimeGrid } from "../components/anime/AnimeGrid";
 
 export const Home = () => {
 
@@ -42,5 +42,5 @@ export const Home = () => {
   if (error) return <ErrorMessage error={error} />;
 
   /* --------- RENDER: SUCCESS STATE --------- */
-  return <AnimeCard anime={anime} />
+  return <AnimeGrid anime={anime} />
 };
