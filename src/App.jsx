@@ -8,7 +8,7 @@ export default function App() {
   // Which sidebar item is active
   const [activePage, setActivePage] = useState("home");
 
-  // Which top nav tab is active (Movie / Series)
+  // Which top nav tab is active (Movie / Serials)
   const [activeTab, setActiveTab] = useState("series");
 
   return (
@@ -30,7 +30,19 @@ export default function App() {
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto">
-          <Home />
+
+          {/* basic page switching with fallback placeholder for unbuilt routes */}
+          {activePage === "home" && <Home />}
+
+          {/* TODO: add other pages here */}
+          {activePage !== "home" && (
+            <div className="flex items-center justify-center h-full text-text-faint text-sm">
+
+              {/* capitalizes first letter */}
+              {activePage.charAt(0).toUpperCase() + activePage.slice(1)} - coming soon
+
+            </div>
+          )}
         </div>
       </main>
 

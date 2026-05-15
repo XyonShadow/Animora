@@ -3,8 +3,9 @@ import { getImageUrl, formatScore } from "../../api/Jikan.js";
 
 {/* Anime card */}
 export function AnimeCard({ item }) {
+  if (!item) return null;
   return (
-    <div className="rounded-card bg-surface overflow-hidden hover:bg-surface-3 transition-colors duration-200">
+    <div className="h-full rounded-card bg-surface overflow-hidden hover:bg-surface-3 transition-colors duration-200 flex flex-col">
       {/* Anime cover image */}
       <img
         src={getImageUrl(item)}
