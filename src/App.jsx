@@ -46,8 +46,15 @@ export default function App() {
         </div>
       </main>
 
-      {/* Right panel */}
-      <RightPanel />
+      {/* Right panel: Search + Popular + Watchlist */}
+      {/* TODO : Pass real data here */}
+      <RightPanel
+        popularAnime={[]}
+        watchlist={[]}
+        loading={false}
+        onSearch={(query) => console.log("Search:", query)}
+        onSelect={(anime) => console.log("Selected:", anime.title)}
+      />
     </div>
   );
 }
