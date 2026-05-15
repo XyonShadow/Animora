@@ -1,18 +1,29 @@
+import { Sidebar } from "./components/layout/Sidebar";
+import { TopNav } from "./components/layout/TopNav";
+import { RightPanel } from "./components/layout/Rightpanel";
 import { Home } from "./pages/Home";
 
-const App = () => {
- 
+export default function App() {
+
   return (
-    <div className="min-h-screen bg-bg p-8">
+    <div className="flex h-screen overflow-hidden bg-bg">
 
-      <h1 className="font-display text-3xl font-bold text-text-primary mb-2">
-        Animora
-      </h1>
+      {/* Left: Sidebar navigation */}
+      <Sidebar />
 
-      <Home />
+      {/* Center: Main content area */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Navbar */}
+        <TopNav />
 
+        {/* Page content */}
+        <div className="flex-1 overflow-y-auto">
+          <Home />
+        </div>
+      </main>
+
+      {/* Right panel */}
+      <RightPanel />
     </div>
   );
-};
-
-export default App;
+}
