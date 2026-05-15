@@ -3,6 +3,7 @@ import { Sidebar } from "./components/layout/Sidebar";
 import { TopNav } from "./components/layout/TopNav";
 import { RightPanel } from "./components/layout/Rightpanel";
 import { Home } from "./pages/Home";
+import { useAnime } from "./hooks/useAnime";
 
 export default function App() {
   // Which sidebar item is active
@@ -10,6 +11,8 @@ export default function App() {
 
   // Which top nav tab is active (Movie / Serials)
   const [activeTab, setActiveTab] = useState("series");
+  
+  const animeData = useAnime();
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
@@ -32,7 +35,12 @@ export default function App() {
         <div className="flex-1 overflow-y-auto">
 
           {/* basic page switching with fallback placeholder for unbuilt routes */}
-          {activePage === "home" && <Home />}
+          {activePage === "home" && <Home
+            topAnime={animeData.topAnime}
+            loading={animeData.loading}
+            error={animeData.error}
+            currentSeasonAnime={animeData.currentSeasonAnime}
+          />}
 
           {/* TODO: add other pages here */}
           {activePage !== "home" && (
@@ -49,9 +57,9 @@ export default function App() {
       {/* Right panel: Search + Popular + Watchlist */}
       {/* TODO : Pass real data here */}
       <RightPanel
-        popularAnime={[]}
+        popularAnime={animeData.popularAnime}
         watchlist={[]}
-        loading={false}
+        loading={animeData.loading}
         onSearch={(query) => console.log("Search:", query)}
         onSelect={(anime) => console.log("Selected:", anime.title)}
       />
