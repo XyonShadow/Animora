@@ -21,7 +21,7 @@ export const Home = () => {
     getTopAnime(6)
       .then((data) => {
         // Set fetched anime data
-        setAnime(data, []); //[] incase API returns undefined
+        setAnime(data ?? []); // [] for incase API returns undefined
 
         // Stop loading once data is received
         setLoading(false);

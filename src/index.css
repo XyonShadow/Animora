@@ -1,10 +1,10 @@
+/* Fonts */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap");
+
 /* Injects Tailwind’s generated styles */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Fonts */
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap");
 
 /* Central color system */
 :root {
@@ -12,8 +12,14 @@
 
   --color-surface: #0d1220;
   --color-surface-2: #151b2d;
+  --color-surface-3: #222D42;
 
   --color-brand: #d32f2f;
+  --color-brand-dark: #b71c1c;
+
+  --color-text-primary: #F3F4F6;
+  --color-text-muted: #9CA3AF;
+  --color-text-faint: #6B7280;
 
   --scrollbar-thumb: #151b2d;
   --scrollbar-track: #070b14;
@@ -25,6 +31,10 @@ body {
   color: #f3f4f6;
   font-family: "DM Sans", sans-serif;
   overflow-x: hidden;
+}
+
+a {
+  text-decoration: underline;
 }
 
 /* ------------------- SCROLLBAR STYLING ------------------- */
