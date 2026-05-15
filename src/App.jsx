@@ -8,6 +8,9 @@ export default function App() {
   // Which sidebar item is active
   const [activePage, setActivePage] = useState("home");
 
+  // Which top nav tab is active (Movie / Series)
+  const [activeTab, setActiveTab] = useState("series");
+
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
 
@@ -20,7 +23,10 @@ export default function App() {
       {/* Center: Main content area */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navbar */}
-        <TopNav />
+        <TopNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto">
