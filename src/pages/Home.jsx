@@ -1,7 +1,7 @@
 /**
- * added hero banner auto-rotation using setInterval
- * implemented looping hero index for seasonal anime list
- * improved hero banner state management and rotation behavior
+ * pages/AnimeDetail.jsx
+ * AnimeSection now receives the real 'onSelect' handler from App.jsx
+ * Clicking play button in herobanner or clicking any card or  navigates to its detail page
  */
 
 import { ErrorMessage } from "../components/anime/Errormessage";
@@ -9,7 +9,7 @@ import { HeroBanner }    from "../components/layout/HeroBanner";
 import { AnimeSection } from "../components/anime/AnimeSection";
 import { useEffect, useState } from "react";
 
-export function Home({topAnime, currentSeasonAnime, loading, error}) {
+export function Home({topAnime, currentSeasonAnime, loading, error, onSelect}) {
 
   // Tracks which seasonal anime is currently displayed in the hero banner
   const [heroIndex, setHeroIndex] = useState(0);
@@ -46,6 +46,7 @@ export function Home({topAnime, currentSeasonAnime, loading, error}) {
         anime={featuredAnime}
         loading={loading}
         error={error}
+        onSelect={onSelect}
       />
 
       {/* Top Rated Section */}
@@ -54,7 +55,7 @@ export function Home({topAnime, currentSeasonAnime, loading, error}) {
         items={topAnime.slice(0, 10)}
         loading={loading}
         error={error}
-        onSelect={(anime) => console.log("Selected:", anime.title)} // TODO: navigate to detail
+        onSelect={onSelect}
       />
 
       {/* Currently Airing Section */}
@@ -63,7 +64,7 @@ export function Home({topAnime, currentSeasonAnime, loading, error}) {
         items={currentSeasonAnime.length ? currentSeasonAnime.slice(0, 10) : topAnime.slice(10)}
         loading={loading}
         error={error}
-        onSelect={(anime) => console.log("Selected:", anime.title)}
+        onSelect={onSelect}
       />
     </div>
   );
