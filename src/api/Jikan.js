@@ -1,10 +1,11 @@
 /**
- *
- * Central API layer for all Jikan requests
- * The goal is to prevent direct fetch calls inside components
- *
- * Docs: https://docs.api.jikan.moe/
- * Rate limit: ~3 requests/second
+  * Changes
+    - added in-memory cache system to prevent duplicate API requests
+    - added in-flight request tracking to reuse ongoing requests
+  *
+  * Central API layer for all Jikan requests
+  * Now handles rate limiting, caching, and request deduplication
+  *
  */
 
 const BASE_URL = "https://api.jikan.moe/v4";
@@ -14,7 +15,7 @@ const BASE_URL = "https://api.jikan.moe/v4";
 let requestQueue = Promise.resolve();
 const RATE_DELAY_MS = 400;
 
-/* Ensures API requests run sequentially with delay to prevent exceeding Jikan rate limits */
+/* Ensures API requests run sequentially with delay */
 function rateLimited(fn) {
   requestQueue = requestQueue.then(
     () =>
@@ -26,12 +27,32 @@ function rateLimited(fn) {
   return requestQueue.then(fn);
 }
 
+/* --------------------------- CACHE + DEDUP SYSTEM --------------------------- */
+
+// Stores completed API results
+const cache = new Map();
+
+// Stores ongoing requests (prevents duplicate simultaneous calls)
+const inFlightRequests = new Map();
+
 /* --------------------------- CORE API FETCH WRAPPER --------------------------- */
 
 /* Handles all API requests */
 async function apiFetch(path, params = {}) {
-  return rateLimited(async () => {
-    // Construct full URL from base + endpoint path
+  const cacheKey = `${path}-${JSON.stringify(params)}`;
+
+  // Return cached response if data is already available
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
+  // Return ongoing request if already in progress
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
+  }
+
+  // Create request promise
+  const requestPromise = rateLimited(async () => {
     const url = new URL(`${BASE_URL}${path}`);
 
     // Append query parameters if they exist
@@ -55,6 +76,19 @@ async function apiFetch(path, params = {}) {
     // Return only the useful data payload
     return json.data;
   });
+
+  // Store in-flight request immediately
+  inFlightRequests.set(cacheKey, requestPromise);
+
+  // Resolve, cache, cleanup
+  return requestPromise
+    .then((data) => {
+      cache.set(cacheKey, data);
+      return data;
+    })
+    .finally(() => {
+      inFlightRequests.delete(cacheKey);
+    });
 }
 
 /* --------------------------- API FUNCTIONS (ENDPOINT WRAPPERS) --------------------------- */
@@ -64,7 +98,7 @@ async function getTopAnime(limit = 10, page = 1) {
   return apiFetch("/top/anime", { limit, page });
 }
 
-/* Fetch currently airing seasonal anime */
+/* Fetch currently airing anime */
 async function getSeasonNow(limit = 10) {
   return apiFetch("/seasons/now", { limit });
 }
@@ -96,12 +130,12 @@ async function getAnimeByGenre(genreId, limit = 10) {
   });
 }
 
-/* Fetch image gallery for anime. */
+/* Fetch anime images */
 async function getAnimeImages(id) {
   return apiFetch(`/anime/${id}/pictures`);
 }
 
-/* --------------------------- HELPER FUNCTIONS (PURE DATA TRANSFORMS) --------------------------- */
+/* --------------------------- HELPERS --------------------------- */
 
 /* Returns best available image URL for anime object */
 function getImageUrl(anime) {
@@ -115,8 +149,8 @@ function getImageUrl(anime) {
 
 /* Formats score to 1 decimal place */
 function formatScore(score) {
-  if (!score) return "N/A";  // Returns "N/A" if score is missing
-  return Number(score).toFixed(1); 
+  if (!score) return "N/A";
+  return Number(score).toFixed(1);
 }
 
 /* Truncates long text at word boundary */
@@ -127,7 +161,7 @@ function truncateSynopsis(text, maxLen = 200) {
   return text.slice(0, maxLen).replace(/\s\S*$/, "") + "…";
 }
 
-/* EXPORTS */
+/* --------------------------- EXPORTS --------------------------- */
 
 export {
   getTopAnime,
