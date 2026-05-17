@@ -2,16 +2,12 @@
  * RightPanel.jsx
  *
  * Changes
- *  - Added Empty text for when the loaded data is empty
- *  - Added Search Functionality
- * 
- * UI BEHAVIOR:
- *  - When search query is 2 or more char -> shows live search results
- *     Otherwise shows Popular Anime + Watchlist sections
- *
+ *  - Receives watchlist and removeFromWatchlist from App via props
+ *  - Uses removeFromWatchlist for removing items from watchlist section
+ *  - Displays watchlist items with dedicated remove button UI
  */
 
-import { Search, MoreHorizontal, Star, Loader2, Dot, X } from "lucide-react";
+import { Search, MoreHorizontal, Star, Loader2, Dot, X, BookmarkX } from "lucide-react";
 
 import { getImageUrl, formatScore } from "../../api/Jikan.js";
 import { useSearch } from "../../hooks/useSearch.js";
@@ -19,7 +15,7 @@ import { useSearch } from "../../hooks/useSearch.js";
 /* ----------------------------- List Item ----------------------------- */
 
 // Renders a single anime row item. Used in Popular list, Watchlist, Search results
-function ListItem({ anime, onSelect }) {
+function ListItem({ anime, onSelect, actionTitle, actionIcon, onAction }) {
   return (
     <div className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-surface-3 transition-colors">
 
@@ -53,6 +49,18 @@ function ListItem({ anime, onSelect }) {
           </span>
         </div>
       </button>
+
+      {/* Remove from watchlist button */}
+      {actionIcon && (
+        <button
+          title={actionTitle}
+          aria-label={actionTitle}
+          onClick={() => onAction?.(anime)}
+          className="text-text-faint hover:text-brand transition-colors flex-shrink-0 p-1"
+        >
+          {actionIcon}
+        </button>
+      )}
     </div>
   );
 }
@@ -76,13 +84,7 @@ function ListItemSkeleton() {
 /* --------------------------- Panel Section --------------------------- */
 
 // Generic list section used for Popular Anime and Watchlist
-function PanelSection({
-  title,
-  items,
-  loading,
-  onSelect,
-  emptyText,
-}) {
+function PanelSection({ title, items, loading, onSelect, actionTitle, actionIcon, onAction, onSeeMore,  emptyText }) {
   return (
     <div className="mb-6">
 
@@ -102,23 +104,32 @@ function PanelSection({
       {/* List content */}
       <div className="space-y-1">
         {loading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <ListItemSkeleton key={i} />
-          ))
+          Array.from({ length: 3 }).map((_, i) => <ListItemSkeleton key={i} />)
         ) : items.length === 0 ? (
-          <p className="text-text-faint text-xs px-2 py-3">
-            {emptyText}
-          </p>
+          <p className="text-text-faint text-xs px-2 py-3">{emptyText}</p>
         ) : (
           items.map((anime) => (
             <ListItem
               key={anime.mal_id}
               anime={anime}
               onSelect={onSelect}
+              actionTitle={actionTitle}
+              actionIcon={actionIcon}
+              onAction={onAction}
             />
           ))
         )}
       </div>
+      
+      {/* See More area*/}
+      {!loading && (
+        <button
+          onClick={onSeeMore}
+          className="w-full mt-2 py-2 rounded-lg bg-surface-3 text-text-muted text-xs font-medium hover:text-text-primary hover:bg-surface-2 transition-colors"
+        >
+          See More
+        </button>
+      )}
     </div>
   );
 }
@@ -127,11 +138,10 @@ function PanelSection({
 function SearchResults({ results, searching, error, onSelect }) {
   if (searching) {
     return (
-      <div className="flex items-center gap-2 px-2 py-3 text-text-faint text-xs">
-        <Loader2 className="w-3 h-3 animate-spin" />
-        Searching…
-      </div>
-    );
+    <div className="flex items-center gap-2 px-2 py-3 text-text-faint text-xs">
+      <Loader2 className="w-3 h-3 animate-spin" /> Searching…
+    </div>
+  );
   }
 
   if (error) {
@@ -171,6 +181,7 @@ export function RightPanel({
   searchQuery,
   onSearch,
   onSelect,
+  removeFromWatchlist,
 }) {
 
   // Handles API fetching, loading state, and errors with search hook
@@ -248,6 +259,9 @@ export function RightPanel({
             items={watchlist}
             loading={loading}
             onSelect={onSelect}
+            actionTitle={"Remove from watchlist"}
+            actionIcon={<BookmarkX className="w-4 h-4" />}
+            onAction={(anime) => removeFromWatchlist?.(anime.mal_id)}
             emptyText="Your watchlist is empty. Click a card to add."
           />
         </>

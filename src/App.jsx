@@ -1,9 +1,9 @@
 /**
  * App.jsx
  * Changes:
- *  - Added searchQuery state to control global search input
- *  - Passed searchQuery and setSearchQuery to RightPanel for controlled search
- *  - Clear searchQuery when navigating to AnimeDetail view
+ * - Integrated useWatchlist hook for global persistent watchlist state
+ * - Passed watchlist data and removeFromWatchlist to RightPanel
+ * - Passed toggleWatchlist and isInWatchlist to AnimeDetail for interaction
  */
 
 import { useState } from "react";
@@ -16,6 +16,7 @@ import { Home } from "./pages/Home";
 import { AnimeDetail } from "./pages/Animedetail";
 
 import { useAnime } from "./hooks/useAnime";
+import { useWatchlist } from "./hooks/useWatchlist";
 
 export default function App() {
   // Which sidebar item is active
@@ -32,6 +33,9 @@ export default function App() {
 
   // Controlled search input value - passed to RightPanel and useSearch (in RightPanel)
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Watchlist - persisted to localStorage
+  const { watchlist, toggleWatchlist, isInWatchlist, removeFromWatchlist } = useWatchlist();
 
   /* Navigate to a detail page */
   function handleSelectAnime(anime) {
@@ -70,6 +74,8 @@ export default function App() {
             <AnimeDetail
               malId={selectedMalId}
               onBack={handleBack}
+              onToggleWatchlist={toggleWatchlist}
+              isInWatchlist={isInWatchlist}
             />
 
           ) : activePage === "home" ? (
@@ -93,7 +99,8 @@ export default function App() {
       {/* Right panel: Search + Popular + Watchlist */}
       <RightPanel
         popularAnime={animeData.popularAnime}
-        watchlist={[]}
+        watchlist={watchlist}
+        removeFromWatchlist={removeFromWatchlist}
         loading={animeData.loading}
         searchQuery={searchQuery}
         onSearch={setSearchQuery}

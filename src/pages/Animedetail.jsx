@@ -14,10 +14,16 @@
  *  - Error handling
  *  - Safe async data fetching
  *  - Derived data formatting (genres, studios)
+ * 
+ * Changes:
+ *  - Receives isInWatchlist and onToggleWatchlist from parent (App)
+ *  - Determines watchlist state using isInWatchlist(malId)
+ *  - Uses conditional UI (BookmarkPlus / BookmarkCheck) based on state
+ *  - Toggles watchlist state via onToggleWatchlist(anime) and updates button
  */
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Star, Tv, Film } from "lucide-react";
+import { ArrowLeft, Star, BookmarkPlus, BookmarkCheck, Tv, Film } from "lucide-react";
 import { getAnimeById, getImageUrl, formatScore } from "../api/Jikan";
 
 // Placeholder while anime details are loading.
@@ -85,7 +91,7 @@ function StatBadge({ label, value }) {
 }
 
 // Main Anime Detail Component
-export function AnimeDetail({ malId, onBack }) {
+export function AnimeDetail({ malId, onBack, onToggleWatchlist, isInWatchlist }) {
 
   // Stores fetched anime data
   const [anime, setAnime] = useState(null);
@@ -179,6 +185,12 @@ export function AnimeDetail({ malId, onBack }) {
   // Combine studio names into one readable string
   const studios = anime.studios?.map((s) => s.name).join(", ") ?? "Unknown";
 
+  // Check if anime already exists in watchlist.
+  const inWatchlist = isInWatchlist(anime.mal_id);
+
+  // choose icon based on watchlist state
+  const WatchlistIcon = inWatchlist ? BookmarkCheck : BookmarkPlus;
+
   /* ---------------- Main Render ---------------- */
   return (
     <div className="flex flex-col gap-6 px-6 py-4 pb-8">
@@ -260,14 +272,22 @@ export function AnimeDetail({ malId, onBack }) {
         </div>
       </div>
 
-      {/* TODO: Make watchlist functional */}
       {/* ---------------- Watchlist button ---------------- */}
       <button
-        onClick={() => (anime) => console.log("Selected:", anime.title)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium w-fit transition-colors 
-          bg-surface-3 text-text-muted border border-white/10 hover:text-text-primary hover:bg-surface-2"
+        aria-label={`${inWatchlist ? "Remove from watchlist" : "Add to watchlist"}`}
+        title={`${inWatchlist ? "Remove from watchlist" : "Add to watchlist"}`}
+        onClick={() => onToggleWatchlist(anime)}
+        className={`
+          flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium w-fit transition-colors
+          ${inWatchlist
+            ? "bg-brand/20 text-brand border border-brand/30 hover:bg-brand/30"
+            : "bg-surface-3 text-text-muted border border-white/10 hover:text-text-primary hover:bg-surface-2"
+          }
+        `}
       >
-        "Add to Watchlist"
+        <WatchlistIcon className="w-4 h-4" />
+        {inWatchlist ? "In Watchlist" : "Add to Watchlist" }
+
       </button>
 
       {/* ---------------- Synopsis ---------------- */}
