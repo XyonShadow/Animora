@@ -1,9 +1,9 @@
 /**
  * App.jsx
  * Changes:
- *  - Introduced selectedMalId state to control detail view rendering
- *  - Updated Home → AnimeDetail navigation via handleSelectAnime
- *  - Added back navigation to return to Home view
+ *  - Added searchQuery state to control global search input
+ *  - Passed searchQuery and setSearchQuery to RightPanel for controlled search
+ *  - Clear searchQuery when navigating to AnimeDetail view
  */
 
 import { useState } from "react";
@@ -30,9 +30,14 @@ export default function App() {
   // null = show Home; a MAL id number = show that anime's detail page
   const [selectedMalId, setSelectedMalId] = useState(null);
 
+  // Controlled search input value - passed to RightPanel and useSearch (in RightPanel)
+  const [searchQuery, setSearchQuery] = useState("");
+
   /* Navigate to a detail page */
   function handleSelectAnime(anime) {
     setSelectedMalId(anime.mal_id);
+    // Clear search when navigating to detail
+    setSearchQuery("");
   }
 
   /* Go back to whatever was showing before detail */
@@ -90,8 +95,8 @@ export default function App() {
         popularAnime={animeData.popularAnime}
         watchlist={[]}
         loading={animeData.loading}
-        onSearch={(query) => console.log("Search:", query)}
-        onSelect={(anime) => console.log("Selected:", anime.title)}
+        searchQuery={searchQuery}
+        onSearch={setSearchQuery}
         onSelect={handleSelectAnime}
       />
     </div>
