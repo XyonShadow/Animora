@@ -1,8 +1,10 @@
 /**
   * Changes
-    - added in-memory cache system to prevent duplicate API requests
-    - added in-flight request tracking to reuse ongoing requests
-  *
+  *  - Replaced JSON.stringify cacheKey with URLSearchParams-based key for consistent request caching
+  *  - Added AbortController support via `{ signal }` in apiFetch for request cancellation
+  *  - Updated fetch to accept and forward `signal` to enable aborting in-flight requests
+  *  - Refactored searchAnime to accept and forward request options (e.g. signal) to apiFetch
+  * 
   * Central API layer for all Jikan requests
   * Now handles rate limiting, caching, and request deduplication
   *
@@ -38,8 +40,10 @@ const inFlightRequests = new Map();
 /* --------------------------- CORE API FETCH WRAPPER --------------------------- */
 
 /* Handles all API requests */
-async function apiFetch(path, params = {}) {
-  const cacheKey = `${path}-${JSON.stringify(params)}`;
+// Added support for request options (AbortController signal for cancellation)
+async function apiFetch(path, params = {}, { signal } = {}) {
+  // Creates a stable cache key using URL-style query string for consistent caching
+  const cacheKey = path + "?" + new URLSearchParams(params).toString();
 
   // Return cached response if data is already available
   if (cache.has(cacheKey)) {
@@ -63,7 +67,8 @@ async function apiFetch(path, params = {}) {
     });
 
     // Perform HTTP request
-    const response = await fetch(url.toString());
+    // Passes AbortController signal to allow request cancellation
+    const response = await fetch(url.toString(), { signal });
 
     // Handle non-success responses
     if (!response.ok) {
@@ -104,15 +109,13 @@ async function getSeasonNow(limit = 10) {
 }
 
 /* Search anime by query string */
-async function searchAnime(query, limit = 10) {
+// Allows passing request options (like signal) through to apiFetch
+async function searchAnime(query, limit = 10, options = {}) {
   // Prevent unnecessary API calls for empty or very short queries
   if (!query || query.trim().length < 2) return [];
 
-  return apiFetch("/anime", {
-    q: query.trim(),
-    limit,
-    sfw: true,
-  });
+  // Forwards request options (e.g. signal) to enable cancellation support
+  return apiFetch("/anime", { q: query.trim(), limit, sfw: true }, options);
 }
 
 /* Fetch full anime details by ID */
