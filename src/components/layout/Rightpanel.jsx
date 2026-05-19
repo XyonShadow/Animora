@@ -1,10 +1,10 @@
 /**
- * RightPanel.jsx
+ * components/layout/RightPanel.jsx
  *
- * Changes
- *  - Receives watchlist and removeFromWatchlist from App via props
- *  - Uses removeFromWatchlist for removing items from watchlist section
- *  - Displays watchlist items with dedicated remove button UI
+ * Changes:
+ *  - Added "See More" handlers for Popular and Watchlist sections (onSeeMorePopular, onSeeMoreWatchlist)
+ *  - Passed these handlers into their respective sections for navigation actions
+ *  - Added a conditional check for the Watchlist's "See More" button so it hides when here’s no data or no handler
  */
 
 import { Search, MoreHorizontal, Star, Loader2, Dot, X, BookmarkX } from "lucide-react";
@@ -19,6 +19,7 @@ function ListItem({ anime, onSelect, actionTitle, actionIcon, onAction }) {
   return (
     <div className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-surface-3 transition-colors">
 
+      {/* Main card trigger */}
       <button
         onClick={() => onSelect?.(anime)}
         className="flex items-center gap-3 flex-1 min-w-0 text-left"
@@ -50,7 +51,7 @@ function ListItem({ anime, onSelect, actionTitle, actionIcon, onAction }) {
         </div>
       </button>
 
-      {/* Remove from watchlist button */}
+      {/* Optional action icon button (remove from watchlist button) */}
       {actionIcon && (
         <button
           title={actionTitle}
@@ -90,9 +91,7 @@ function PanelSection({ title, items, loading, onSelect, actionTitle, actionIcon
 
       {/* Section header */}
       <div className="flex items-center justify-between mb-2 px-1">
-        <h3 className="font-display text-sm font-semibold text-text-primary">
-          {title}
-        </h3>
+        <h3 className="font-display text-sm font-semibold text-text-primary">{title}</h3>
 
         {/* More Icon */}
         {/* TODO: Add Button functionality */}
@@ -120,9 +119,9 @@ function PanelSection({ title, items, loading, onSelect, actionTitle, actionIcon
           ))
         )}
       </div>
-      
-      {/* See More area*/}
-      {!loading && (
+
+      {/* Only show the "See More" button if data exists and a target route function is provided */}
+      {!loading && items.length > 0 && onSeeMore && (
         <button
           onClick={onSeeMore}
           className="w-full mt-2 py-2 rounded-lg bg-surface-3 text-text-muted text-xs font-medium hover:text-text-primary hover:bg-surface-2 transition-colors"
@@ -135,13 +134,15 @@ function PanelSection({ title, items, loading, onSelect, actionTitle, actionIcon
 }
 
 /* ------------------------- Search Results ------------------------- */
+
+// Evaluates and renders active search operations, errors, or matched queries
 function SearchResults({ results, searching, error, onSelect }) {
   if (searching) {
     return (
-    <div className="flex items-center gap-2 px-2 py-3 text-text-faint text-xs">
-      <Loader2 className="w-3 h-3 animate-spin" /> Searching…
-    </div>
-  );
+      <div className="flex items-center gap-2 px-2 py-3 text-text-faint text-xs">
+        <Loader2 className="w-3 h-3 animate-spin" /> Searching…
+      </div>
+    );
   }
 
   if (error) {
@@ -163,11 +164,7 @@ function SearchResults({ results, searching, error, onSelect }) {
   return (
     <div className="space-y-1">
       {results.map((anime) => (
-        <ListItem
-          key={anime.mal_id}
-          anime={anime}
-          onSelect={onSelect}
-        />
+        <ListItem key={anime.mal_id} anime={anime} onSelect={onSelect} />
       ))}
     </div>
   );
@@ -182,6 +179,8 @@ export function RightPanel({
   onSearch,
   onSelect,
   removeFromWatchlist,
+  onSeeMorePopular,
+  onSeeMoreWatchlist,
 }) {
 
   // Handles API fetching, loading state, and errors with search hook
@@ -193,7 +192,7 @@ export function RightPanel({
   return (
     <aside className="w-64 flex-shrink-0 h-screen sticky top-0 bg-surface-2 px-4 py-6 overflow-y-auto">
 
-      {/* ---------------- Search Input ---------------- */}
+      {/* ---------------- Search Bar Input Section ---------------- */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
 
@@ -202,23 +201,23 @@ export function RightPanel({
           placeholder="Type to Search..."
           value={searchQuery}
           onChange={(e) => onSearch?.(e.target.value)}
-          className="w-full bg-surface-3 rounded-lg pl-9 pr-4 py-2 text-xs text-text-primary
+          className="w-full bg-surface-3 rounded-lg pl-9 pr-8 py-2 text-xs text-text-primary
             placeholder:text-text-faint border border-transparent focus:border-brand/40
             outline-none transition-colors"
         />
 
-        {/* Clear input */}
+        {/* Clear query button indicator */}
         {searchQuery && (
           <button
             onClick={() => onSearch?.("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-primary text-xs transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-primary transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
 
-     </div>
-      
+      </div>
+
       {/* Message for short input */}
       {searchQuery.trim().length === 1 && (
         <div className="px-1 -mt-3 mb-2">
@@ -250,6 +249,7 @@ export function RightPanel({
             items={popularAnime}
             loading={loading}
             onSelect={onSelect}
+            onSeeMore={onSeeMorePopular}
             emptyText="No popular anime loaded."
           />
 
@@ -259,9 +259,11 @@ export function RightPanel({
             items={watchlist}
             loading={loading}
             onSelect={onSelect}
-            actionTitle={"Remove from watchlist"}
+            actionTitle="Remove from watchlist"
             actionIcon={<BookmarkX className="w-4 h-4" />}
             onAction={(anime) => removeFromWatchlist?.(anime.mal_id)}
+            // Only mount the see-more function path if items actually exist to be paginated
+            onSeeMore={watchlist.length > 0 ? onSeeMoreWatchlist : undefined}
             emptyText="Your watchlist is empty. Click a card to add."
           />
         </>
