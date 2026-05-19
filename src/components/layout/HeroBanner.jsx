@@ -4,14 +4,13 @@
  * Displays the main featured anime - The large featured anime banner
  *
  * Changes:
- *  - Prop change: Now accepts an array (animeList) instead of a single anime object
- *  - HeroBanner now handles its own slide index and rotation logic (no longer in Home.jsx)
- *  - Added smoother crossfade transitions to prevent flashing when images/text change
- *  - Made Navigation dots and arrows to be functional 
- *  - Reset the 7.5s auto-slide timer on manual actions (arrows/dots)
+ *  - Fixed double interval bug: useEffect previously duplicated the interval logic from
+ *    startRotationTimer, causing two timers to run simultaneously whenever visibleAnime.length
+ *    changed. useEffect now simply calls startRotationTimer() so there is always exactly one
+ *    timer active at a time.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { getImageUrl, formatScore, truncateSynopsis } from "../../api/Jikan.js";
 
@@ -42,9 +41,10 @@ export function HeroBanner({ animeList = [], loading, error, onSelect }) {
 
   // fixes the index if the list shrinks or updates unexpectedly
   const activeIndex = currentIndex >= visibleAnime.length ? 0 : currentIndex;
-  
+
   // Clears any existing timer and starts a fresh auto-rotation countdown
-  const startRotationTimer = () => {
+  // Wrapped in useCallback so it has a stable reference for use in useEffect
+  const startRotationTimer = useCallback(() => {
     clearInterval(intervalRef.current);
     if (!visibleAnime.length) return;
 
@@ -55,26 +55,21 @@ export function HeroBanner({ animeList = [], loading, error, onSelect }) {
         return (safePrev + 1) % visibleAnime.length;
       });
     }, ROTATION_MS);
-  };
+  }, [visibleAnime.length]); // updates when length of visibleAnime changes
 
   // Starts the auto-rotation timer
+  // Previously this duplicated the interval logic from startRotationTimer inline,
+  // which caused two timers to be active simultaneously. Now it just delegates.
   useEffect(() => {
-    if (!visibleAnime.length) return;
-
-    intervalRef.current = setInterval(() => {
-      setCurrentIndex((prev) => {
-        const safePrev = prev >= visibleAnime.length ? 0 : prev;
-        return (safePrev + 1) % visibleAnime.length;
-      });
-    }, ROTATION_MS);
+    startRotationTimer();
 
     // Cleans up the timer when the component unmounts to prevent memory leaks
     return () => clearInterval(intervalRef.current);
-  }, [visibleAnime.length]); // updates when the list size changes
+  }, [startRotationTimer]); // updates when the list size changes
 
   // Handles changing the slide with a smooth fade transition
   const goTo = (nextIndex) => {
-    // Reset the timer on user click
+    // Reset the timer on user interaction
     startRotationTimer();
 
     setTransitioning(true);
@@ -163,7 +158,7 @@ export function HeroBanner({ animeList = [], loading, error, onSelect }) {
         <ChevronRight className="w-4 h-4" />
       </button>
 
-      {/* Main content container */}
+      {/* Navigation dots */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
         {Array.from({ length: dotCount }).map((_, i) => (
           <button
@@ -179,7 +174,7 @@ export function HeroBanner({ animeList = [], loading, error, onSelect }) {
         ))}
       </div>
 
-      {/* Text Context */}
+      {/* Text Content */}
       <div
         className={`absolute inset-0 flex flex-col justify-center pl-6 pr-36 transition-opacity duration-200 ${
           transitioning ? "opacity-0" : "opacity-100"
