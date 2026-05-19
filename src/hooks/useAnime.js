@@ -8,9 +8,13 @@
  * - Fetch top anime (for anime section)
  * - Fetch seasonal anime (for hero banner)
  * - Provide data like popularAnime
+ *
+ * Changes:
+ *  - Wrapped popularAnime in useMemo so it only recomputes when topAnime
+ *    actually changes, instead of re-running slice(0, 4) on every render
 */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getTopAnime, getSeasonNow } from "../api/Jikan";
 
 export function useAnime() {
@@ -57,9 +61,10 @@ export function useAnime() {
       // runs on unmount (component removed from UI)
       isMounted = false;
     };
-  }, [])
+  }, []);
 
-  const popularAnime = topAnime.slice(0, 4);
+  // Gets the top 4 anime
+  const popularAnime = useMemo(() => topAnime.slice(0, 4), [topAnime]);
 
   return {
     topAnime,
