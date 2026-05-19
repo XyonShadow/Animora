@@ -37,6 +37,10 @@ a {
   text-decoration: underline;
 }
 
+.nav-link {
+  text-decoration: none;
+}
+
 /* ------------------- SCROLLBAR STYLING ------------------- */
 
 ::-webkit-scrollbar {

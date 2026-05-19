@@ -16,15 +16,14 @@
  *  - Derived data formatting (genres, studios)
  * 
  * Changes:
- *  - Receives isInWatchlist and onToggleWatchlist from parent (App)
- *  - Determines watchlist state using isInWatchlist(malId)
- *  - Uses conditional UI (BookmarkPlus / BookmarkCheck) based on state
- *  - Toggles watchlist state via onToggleWatchlist(anime) and updates button
+ * - AnimeDetail now reads the anime ID directly from the URL (/anime/:id)
+ * - Removed dependency on selectedMalId prop/state from parent component
  */
 
 import { useState, useEffect } from "react";
 import { ArrowLeft, Star, BookmarkPlus, BookmarkCheck, Tv, Film } from "lucide-react";
 import { getAnimeById, getImageUrl, formatScore } from "../api/Jikan";
+import { useParams } from "react-router-dom";
 
 // Placeholder while anime details are loading.
 function DetailSkeleton() {
@@ -91,7 +90,11 @@ function StatBadge({ label, value }) {
 }
 
 // Main Anime Detail Component
-export function AnimeDetail({ malId, onBack, onToggleWatchlist, isInWatchlist }) {
+export function AnimeDetail({ onBack, onToggleWatchlist, isInWatchlist }) {
+
+  const { id } = useParams();
+
+  const malId = Number(id);
 
   // Stores fetched anime data
   const [anime, setAnime] = useState(null);

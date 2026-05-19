@@ -1,11 +1,16 @@
 /**
  * App.jsx
+ *
  * Changes:
- * - Integrated useWatchlist hook for global persistent watchlist state
- * - Passed watchlist data and removeFromWatchlist to RightPanel
- * - Passed toggleWatchlist and isInWatchlist to AnimeDetail for interaction
+ *  - Replaced manual navigation system (activePage + activeTab state) with React Router-based routing system
+ *  - Introduced <Routes> and <Route> structure for page rendering
+ *  - Removed selectedMalId state (no longer needed for detail navigation)
+ *  - AnimeDetail is now rendered via route (/anime/:id) instead of conditional state
+ *  - Added fallback route handling using <Navigate /> for unknown routes
+ *  - Sidebar and TopNav are now fully router-driven (no props required for navigation state)
  */
 
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useState } from "react";
 
 import { Sidebar } from "./components/layout/Sidebar";
@@ -18,93 +23,103 @@ import { AnimeDetail } from "./pages/Animedetail";
 import { useAnime } from "./hooks/useAnime";
 import { useWatchlist } from "./hooks/useWatchlist";
 
+// Simple placeholder component for pages not yet implemented
+function ComingSoon({label}) {
+  return (
+    <div className="flex items-center justify-center h-full text-text-faint text-sm">
+      {label} - coming soon
+    </div>
+  );
+}
+
 export default function App() {
-  // Which sidebar item is active
-  const [activePage, setActivePage] = useState("home");
 
-  // Which top nav tab is active (Movie / Serials)
-  const [activeTab, setActiveTab] = useState("series");
-  
-  // Shared anime data for Home + RightPanel
-  const animeData = useAnime();
+  const navigate = useNavigate();
 
-  // null = show Home; a MAL id number = show that anime's detail page
-  const [selectedMalId, setSelectedMalId] = useState(null);
-
-  // Controlled search input value - passed to RightPanel and useSearch (in RightPanel)
+  // Controls search input in RightPanel
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Watchlist - persisted to localStorage
+  // Global anime data (top, seasonal, popular, etc.)
+  const { topAnime, currentSeasonAnime, popularAnime, loading, error } = useAnime();
+
+  // Global watchlist state (persistent storage)
   const { watchlist, toggleWatchlist, isInWatchlist, removeFromWatchlist } = useWatchlist();
 
-  /* Navigate to a detail page */
+  // Handles selecting an anime from any list/grid
   function handleSelectAnime(anime) {
-    setSelectedMalId(anime.mal_id);
-    // Clear search when navigating to detail
-    setSearchQuery("");
-  }
-
-  /* Go back to whatever was showing before detail */
-  function handleBack() {
-    setSelectedMalId(null);
+    setSearchQuery(""); // clear search when navigating
+    // Navigates to detail page using URL instead of local state
+    navigate(`/anime/${anime.mal_id}`);
   }
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
 
-      {/* Left: Sidebar */}
-      <Sidebar
-        activePage={activePage}
-        onNavigate={(page) => {
-          setActivePage(page);
-          setSelectedMalId(null); // clear detail when navigating sidebar
-        }}
-      />
+      {/* Sidebar navigation is now fully router-driven */}
+      <Sidebar />
 
-      {/* Center: Main content area */}
+      {/* Main content area */}
       <main className="flex-1 flex flex-col overflow-hidden">
+
         {/* Top Navbar */}
-        <TopNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <TopNav />
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto">
+          <Routes>
 
-          {/* Detail page takes priority over everything else */}
-          {selectedMalId !== null ? (
-            <AnimeDetail
-              malId={selectedMalId}
-              onBack={handleBack}
-              onToggleWatchlist={toggleWatchlist}
-              isInWatchlist={isInWatchlist}
+            {/* Home page route */}
+            <Route
+              path="/"
+              element={
+                <Home
+                  topAnime={topAnime}
+                  currentSeasonAnime={currentSeasonAnime}
+                  loading={loading}
+                  error={error}
+                  onSelect={handleSelectAnime}
+                />
+              }
             />
 
-          ) : activePage === "home" ? (
-            <Home
-              topAnime={animeData.topAnime}
-              currentSeasonAnime={animeData.currentSeasonAnime}
-              loading={animeData.loading}
-              error={animeData.error}
-              onSelect={handleSelectAnime}
+            {/* Anime detail page (/anime/:id) */}            
+            <Route
+              path="/anime/:id"
+              element={
+                <AnimeDetail
+                  onBack={() => navigate(-1)} // go back in browser history
+                  onToggleWatchlist={toggleWatchlist}
+                  isInWatchlist={isInWatchlist}
+                />
+              }
             />
 
-          ) : (
-            <div className="flex items-center justify-center h-full text-text-faint text-sm">
-              {/* Capitalize first letter */}
-              {activePage.charAt(0).toUpperCase() + activePage.slice(1)} - Coming soon
-            </div>
-          )}
+            {/* Placeholder routes for future features */}
+            <Route path="/community" element={<ComingSoon label="Community" />} />
+            <Route path="/celebs" element={<ComingSoon label="Celebs Speakers" />} />
+            <Route path="/recent" element={<ComingSoon label="Recent" />} />
+            <Route path="/downloaded" element={<ComingSoon label="Downloaded" />} />
+            <Route path="/settings" element={<ComingSoon label="Settings" />} />
+
+            {/* Fallback route - redirects unknown URLs to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+
+          </Routes>
         </div>
       </main>
 
       {/* Right panel: Search + Popular + Watchlist */}
       <RightPanel
-        popularAnime={animeData.popularAnime}
+        popularAnime={popularAnime}
         watchlist={watchlist}
         removeFromWatchlist={removeFromWatchlist}
-        loading={animeData.loading}
+        loading={loading}
         searchQuery={searchQuery}
         onSearch={setSearchQuery}
         onSelect={handleSelectAnime}
+        // Quick navigation shortcuts
+        onSeeMorePopular={() => navigate("/series")}
+        onSeeMoreWatchlist={() => navigate("/series")} // future: dedicated watchlist page
       />
     </div>
   );
