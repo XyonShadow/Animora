@@ -16,6 +16,11 @@
  *
  * Data fetching strategy:
  *  Use server-side filtering via the API (?type=movie or ?type=tv).
+ *
+ * Changes:
+ *  - Fixed Load More bug: separated initial loading from pagination loading.
+ *    "Load More" now uses a dedicated loadingMore state instead of the main loading state,
+ *    preventing unnecessary UI resets and keeping the grid stable while fetching more items
  */
 
 import { useState, useEffect } from "react";
@@ -23,7 +28,7 @@ import { Film, Tv } from "lucide-react";
 import { getTopAnime } from "../api/Jikan";
 import { AnimeCard } from "../components/anime/AnimeCard";
 
-// Skeleton shown while data is loading
+// Skeleton shown during initial page load only
 function BrowseSkeleton() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -44,8 +49,11 @@ export function BrowsePage({ type, onSelect }) {
   // Stores the list of anime/items fetched from the API
   const [items, setItems] = useState([]);
 
-  // Controls initial loading state when page first loads
+  // Controls initial page load skeleton (true until first fetch completes)
   const [loading, setLoading] = useState(true);
+
+  // Controls the Load More button state only — does NOT affect the grid visibility
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Stores API error messages if request fails
   const [error, setError] = useState(null);
@@ -70,21 +78,24 @@ export function BrowsePage({ type, onSelect }) {
       .then((data) => {
         if (!isMounted) return;
 
-        // If on first page, replace data, If on next pages, append data
+        // If on first page, replace data. If on next pages, append data.
         setItems((previousItems) =>
           page === 1 ? (data ?? []) : [...previousItems, ...(data ?? [])]
         );
 
         // If returned data is less than limit, no more pages exist
         setHasMore((data?.length ?? 0) === 20);
-
-        setLoading(false);
       })
       .catch((error) => {
         if (!isMounted) return;
 
         setError(error.message);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        // Clear both loading states regardless of which triggered this fetch
         setLoading(false);
+        setLoadingMore(false);
       });
 
     // Cleanup function runs when component unmounts
@@ -113,7 +124,7 @@ export function BrowsePage({ type, onSelect }) {
         </div>
       )}
 
-      {/* Loading state */}
+      {/* Initial loading skeleton — only shown before any items exist */}
       {loading && items.length === 0 ? (
         <BrowseSkeleton />
       ) : (
@@ -131,20 +142,20 @@ export function BrowsePage({ type, onSelect }) {
             ))}
           </div>
 
-          {/* Load more button (pagination trigger) */}
+          {/* Load More button — uses loadingMore so the grid stays visible */}
           {hasMore && (
             <button
               onClick={() => {
-                // Show loading state immediately when clicked
-                setLoading(true);
+                // Only set loadingMore — never touch the main `loading` state here
+                setLoadingMore(true);
 
                 // Move to next page (triggers new fetch)
                 setPage((previousPage) => previousPage + 1);
               }}
-              disabled={loading}
+              disabled={loadingMore}
               className="mx-auto flex items-center gap-2 px-6 py-2.5 rounded-lg bg-surface-3 text-text-muted text-sm font-medium hover:text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
             >
-              {loading ? "Loading…" : "Load More"}
+              {loadingMore ? "Loading…" : "Load More"}
             </button>
           )}
         </>
