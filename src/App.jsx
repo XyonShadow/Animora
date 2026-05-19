@@ -2,12 +2,7 @@
  * App.jsx
  *
  * Changes:
- *  - Replaced manual navigation system (activePage + activeTab state) with React Router-based routing system
- *  - Introduced <Routes> and <Route> structure for page rendering
- *  - Removed selectedMalId state (no longer needed for detail navigation)
- *  - AnimeDetail is now rendered via route (/anime/:id) instead of conditional state
- *  - Added fallback route handling using <Navigate /> for unknown routes
- *  - Sidebar and TopNav are now fully router-driven (no props required for navigation state)
+ * - Added BrowsePage and routes for /movies and /series
  */
 
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
@@ -19,6 +14,7 @@ import { RightPanel } from "./components/layout/Rightpanel";
 
 import { Home } from "./pages/Home";
 import { AnimeDetail } from "./pages/Animedetail";
+import { BrowsePage } from "./pages/BrowsePage";
 
 import { useAnime } from "./hooks/useAnime";
 import { useWatchlist } from "./hooks/useWatchlist";
@@ -92,6 +88,17 @@ export default function App() {
                   isInWatchlist={isInWatchlist}
                 />
               }
+            />
+
+            {/* Browse pages (Movies / Series) */}
+            <Route
+              path="/movies"
+              element={<BrowsePage key="Movie" type="Movie" onSelect={handleSelectAnime} />}
+            />
+
+            <Route
+              path="/series"
+              element={<BrowsePage key="TV" type="TV" onSelect={handleSelectAnime} />}
             />
 
             {/* Placeholder routes for future features */}
